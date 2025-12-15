@@ -12,9 +12,6 @@ export const TableComponent = ({ budgetData, handleUpdateCell }: { budgetData: B
         return budgetData.reduce((sum, row) => sum + (row.monthly_data[monthIndex] || 0), 0)
     })
 
-    // Calculate the average of monthly sums for the summary row
-    const averageOfSums = monthlySums.reduce((sum, val) => sum + val, 0) / MONTH_NAMES.length
-
     return (
         <div className="overflow-x-auto">
             <table className="border-collapse w-full border border-gray-300">
@@ -33,7 +30,6 @@ export const TableComponent = ({ budgetData, handleUpdateCell }: { budgetData: B
                 </thead>
                 <tbody>
                     {budgetData.map((row) => {
-                        // Calculate average for each row
                         const rowAverage = row.monthly_data.reduce((sum, val) => sum + val, 0) / row.monthly_data.length
                         return (
                             <tr key={row.id}>
@@ -49,7 +45,6 @@ export const TableComponent = ({ budgetData, handleUpdateCell }: { budgetData: B
                             </tr>
                         )
                     })}
-                    {/* Summary row */}
                     <tr className="bg-blue-50">
                         <td className="border border-gray-300 p-2 font-bold bg-blue-100">
                             Total
@@ -59,9 +54,6 @@ export const TableComponent = ({ budgetData, handleUpdateCell }: { budgetData: B
                                 {sum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                             </td>
                         ))}
-                        <td className="border border-gray-300 p-2 text-center font-bold bg-blue-100">
-                            {averageOfSums.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-                        </td>
                     </tr>
                 </tbody>
             </table>

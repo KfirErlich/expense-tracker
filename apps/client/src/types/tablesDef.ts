@@ -6,7 +6,7 @@ export const initData: MonthlyAmount[] = Array(12).fill(0)
 export interface CatagoryRow {
     id: string, 
     name: string,
-    year_total: MonthlyAmount,
+    year_total?: MonthlyAmount,
     monthly_data: MonthlyAmount[]
 }
 
@@ -24,6 +24,54 @@ export const MONTH_NAMES = [
     'November',
     'December'
 ]
+
+export const SUMMARY_TABLE_DATA : BudgetData = [
+    { 
+        id: "Total_Income",
+        name: "Total Income",
+         monthly_data: initData
+    },
+    { 
+        id: "Vital_Expenses",
+        name: "Vital Expenses",
+         monthly_data: initData
+    },
+    { 
+        id: "Non_Vital_Expenses",
+        name: "Non Vital Expenses",
+         monthly_data: initData
+    },
+    { 
+        id: "Total_Expenses",
+        name: "Total Expenses",
+         monthly_data: initData
+    },
+    { 
+        id: "Balance",
+        name: "Balance",
+         monthly_data: initData
+    },
+    { 
+        id: "Saving_Percentage",
+        name: "Saving Percentage",
+         monthly_data: initData
+    },
+]
+
+export interface SummaryTableProps {
+    income: BudgetData
+    vital: BudgetData
+    nonVital: BudgetData
+}
+
+export interface MonthlySummaryData {
+    totalIncome: number
+    vitalExpenses: number
+    nonVitalExpenses: number
+    totalExpenses: number
+    balance: number
+    savingPercentage: number
+}
 
 export const INITIAL_INCOME_BUDGET_DATA: BudgetData = [
     { 

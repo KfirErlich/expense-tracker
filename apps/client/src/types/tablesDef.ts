@@ -68,12 +68,6 @@ export const INITIAL_INCOME_BUDGET_DATA: BudgetData = [
          year_total: 0,
          monthly_data: initData
     },
-    { 
-        id: "Total",
-         name: "Total",
-         year_total: 0,
-         monthly_data: initData
-    }
 ]
 export const INITIAL_VITAL_EXPENSES_BUDGET_DATA: BudgetData = [
     { 
@@ -113,12 +107,6 @@ export const INITIAL_VITAL_EXPENSES_BUDGET_DATA: BudgetData = [
          monthly_data: initData
     },
     { 
-        id: "Morgage_Rental",
-        name: "Morgage/Rental",
-         year_total: 0,
-         monthly_data: initData
-    },
-    { 
         id: "Food_Hygiene_House_Vital",
         name: "Food/Hygiene/House-Vital",
          year_total: 0,
@@ -139,12 +127,6 @@ export const INITIAL_VITAL_EXPENSES_BUDGET_DATA: BudgetData = [
     { 
         id: "Service_Fees",
         name: "Service Fees",
-         year_total: 0,
-         monthly_data: initData
-    },
-    { 
-        id: "Morgage_Rental",
-        name: "Morgage/Rental",
          year_total: 0,
          monthly_data: initData
     },

@@ -1,5 +1,6 @@
 import './App.css'
 import { Table } from './components/Table'
+import SummaryTable from './components/SummaryTable'
 import { useReducer, useCallback } from 'react'
 import { budgetReducer, initialState } from './store/budgetReducer'
 
@@ -43,6 +44,10 @@ function App() {
         <div className="w-full max-w-7xl">
           <h2 className="text-2xl font-bold mb-4">Non-Vital Expenses</h2>
           <Table budgetData={state.nonVital} handleUpdateCell={handleNonVitalUpdates} />
+        </div>
+        <div className="w-full max-w-7xl">
+          <h2 className="text-2xl font-bold mb-4">Summary</h2>
+          <SummaryTable income={state.income} vital={state.vital} nonVital={state.nonVital} />
         </div>
       </div>
   )

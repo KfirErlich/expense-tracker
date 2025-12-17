@@ -5,7 +5,6 @@ import { useReducer, useCallback } from 'react'
 import { budgetReducer, initialState } from './store/budgetReducer'
 
 /* TODO: 
-- Create another Table for the yearly status (Total, Average, Month with the highest and lowest)
 - Move all Data to a Database
 - Create a dropdown to select the year
 */

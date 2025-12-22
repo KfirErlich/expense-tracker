@@ -79,5 +79,51 @@ export const BudgetController = {
             console.error("Error updating budget:", error);
             res.status(500).json({ message: "Error updating budget" });
         }
+    },
+    getYears: async (req: Request, res: Response) => {
+        try {
+            let { userId } = req.query
+
+            if (!userId) {
+                return res.status(400).json({ message: "userId is required" });
+            }
+
+            const budgets = await Budget.find({ userId }).select('year').sort({ year: 1 });
+            const years = budgets.map(budget => budget.year);
+
+            res.json({ years });
+        } catch (error) {
+            console.error("Error fetching years:", error);
+            res.status(500).json({ message: "Error fetching years" });
+        }
+    },
+    createYear: async (req: Request, res: Response) => {
+        try {
+            const { year, userId } = req.body
+
+            if (!year || !userId) {
+                return res.status(400).json({ message: "year and userId are required" });
+            }
+
+            // Check if budget already exists
+            const existingBudget = await Budget.findOne({ year: parseInt(year), userId });
+            if (existingBudget) {
+                return res.status(409).json({ message: "Budget for this year already exists" });
+            }
+
+            // Create new budget with initial data
+            const budget = await Budget.create({
+                year: parseInt(year),
+                userId,
+                income: INITIAL_INCOME_BUDGET_DATA,
+                vital: INITIAL_VITAL_EXPENSES_BUDGET_DATA,
+                nonVital: INITIAL_NON_VITAL_EXPENSES_BUDGET_DATA
+            });
+
+            res.json({ budget, userId });
+        } catch (error) {
+            console.error("Error creating year:", error);
+            res.status(500).json({ message: "Error creating year" });
+        }
     }
 }

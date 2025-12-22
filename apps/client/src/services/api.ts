@@ -7,7 +7,8 @@ export const budgetService = {
     getBudget: async( year: number) => {
         const response = await axios.get(`${API_URL}/budget/${year}`, {
             params: {
-                userId: DEV_USER_ID
+                userId: DEV_USER_ID,
+                year
             }
         })
         return response.data;
@@ -25,6 +26,21 @@ export const budgetService = {
             section,
             categoryId,
             newMonthlyData
+        })
+        return response.data;
+    },
+    getYears: async (userId: string) => {
+        const response = await axios.get(`${API_URL}/budget/years`, {
+            params: {
+                userId
+            }
+        })
+        return response.data;
+    },
+    createYear: async (year: number, userId: string) => {
+        const response = await axios.post(`${API_URL}/budget/year`, {
+            year,
+            userId
         })
         return response.data;
     }

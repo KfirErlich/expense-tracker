@@ -28,6 +28,6 @@ const budgetSchema = new Schema<IBudget>({
   nonVital: [categoryRowSchema],
 }, { timestamps: true });
 
-budgetSchema.index({year: 1, userId: 1 }, { unique: true })
+budgetSchema.index({userId: 1, year: 1 }, { unique: true })
 
 export const Budget = model<IBudget>('Budget', budgetSchema);

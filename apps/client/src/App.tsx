@@ -1,9 +1,10 @@
 import './App.css'
 import { Table } from './components/Table'
 import SummaryTable from './components/SummaryTable'
-import { useReducer, useEffect, useState, useRef } from 'react'
+import { useReducer, useEffect, useState } from 'react'
 import { budgetReducer, initialState } from './store/budgetReducer'
 import { budgetService } from './services/api'
+import YearDropdown from './components/YearDropdown'
 
 /* TODO: 
 - Move all Data to a Database
@@ -15,18 +16,13 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState<string>('')
-  const currentYear = new Date().getFullYear()
-  const isFetched = useRef(false)
+  const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear())
 
   useEffect(() => {
-    if (isFetched.current) return
-    isFetched.current = true
-
     const fetchBudget = async () => {
       try {
         setLoading(true)
         setError(null)
-        // Using current year as default - you can make this dynamic later
         console.log('Fetching budget for year:', currentYear)
         const response = await budgetService.getBudget(currentYear)
         console.log('Budget response received:', response)
@@ -56,7 +52,7 @@ function App() {
     }
 
     fetchBudget()
-  }, [])
+  }, [currentYear])
 
   const handleUpdateCell = (budgetType: 'income' | 'nonVital' | 'vital') => {
     return async (rowId: string, monthIndex: number, value: number) => {
@@ -119,6 +115,7 @@ function App() {
 
   return (
       <div className="flex flex-col items-center min-h-screen py-8 gap-8 px-4">
+        <YearDropdown currentYear={currentYear} setCurrentYear={setCurrentYear} userId={userId} />
         <div className="w-full max-w-7xl">
           <h2 className="text-2xl font-bold mb-4">Income</h2>
           <Table budgetData={state.income} handleUpdateCell={handleIncomeUpdates} />

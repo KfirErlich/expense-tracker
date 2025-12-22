@@ -1,5 +1,4 @@
-import { MONTH_NAMES, SUMMARY_TABLE_DATA, type SummaryTableProps } from "../types/tablesDef"
-import { type MonthlySummaryData } from "../types/tablesDef"
+import { MONTH_NAMES, SUMMARY_TABLE_DATA, type SummaryTableProps, type MonthlySummaryData } from "@shared"
 import React from "react"
 
 

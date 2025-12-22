@@ -1,9 +1,9 @@
-import type { BudgetData } from '../types/tablesDef'
+import type { BudgetData } from '@shared'
 import { 
     INITIAL_INCOME_BUDGET_DATA,
     INITIAL_NON_VITAL_EXPENSES_BUDGET_DATA,
     INITIAL_VITAL_EXPENSES_BUDGET_DATA
-} from '../types/tablesDef'
+} from '@shared'
 
 export interface BudgetState {
     income: BudgetData
@@ -17,13 +17,20 @@ export const initialState: BudgetState = {
     vital: INITIAL_VITAL_EXPENSES_BUDGET_DATA
 }
 
-type BudgetAction = {
-    type: 'UPDATE_CELL'
-    budgetType: 'income' | 'nonVital' | 'vital'
-    rowId: string
-    monthIndex: number
-    value: number
-}
+type BudgetAction = 
+    | {
+        type: 'UPDATE_CELL'
+        budgetType: 'income' | 'nonVital' | 'vital'
+        rowId: string
+        monthIndex: number
+        value: number
+    }
+    | {
+        type: 'SET_BUDGET'
+        income: BudgetData
+        vital: BudgetData
+        nonVital: BudgetData
+    }
 
 export const budgetReducer = (state: BudgetState, action: BudgetAction): BudgetState => {
     switch(action.type) {
@@ -49,6 +56,13 @@ export const budgetReducer = (state: BudgetState, action: BudgetAction): BudgetS
             return {
                 ...state,
                 [budgetType]: updatedBudgetData
+            }
+        }
+        case "SET_BUDGET": {
+            return {
+                income: action.income,
+                vital: action.vital,
+                nonVital: action.nonVital
             }
         }
         default:

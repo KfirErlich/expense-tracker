@@ -1,8 +1,9 @@
 import './App.css'
 import { Table } from './components/Table'
 import SummaryTable from './components/SummaryTable'
-import { useReducer, useCallback } from 'react'
+import { useReducer, useEffect, useState, useRef } from 'react'
 import { budgetReducer, initialState } from './store/budgetReducer'
+import { budgetService } from './services/api'
 
 /* TODO: 
 - Move all Data to a Database
@@ -11,11 +12,64 @@ import { budgetReducer, initialState } from './store/budgetReducer'
 
 function App() {
   const [state, dispatch] = useReducer(budgetReducer, initialState)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string>('')
+  const currentYear = new Date().getFullYear()
+  const isFetched = useRef(false)
 
+  useEffect(() => {
+    if (isFetched.current) return
+    isFetched.current = true
 
-  const handleUpdateCell = useCallback((budgetType: 'income' | 'nonVital' | 'vital') => {
-    console.log("createUpdateHandler")
-    return (rowId: string, monthIndex: number, value: number) => {
+    const fetchBudget = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        // Using current year as default - you can make this dynamic later
+        console.log('Fetching budget for year:', currentYear)
+        const response = await budgetService.getBudget(currentYear)
+        console.log('Budget response received:', response)
+        
+        // The API returns { budget: { income, vital, nonVital }, userId }
+        if (response.budget) {
+          dispatch({
+            type: 'SET_BUDGET',
+            income: response.budget.income,
+            vital: response.budget.vital,
+            nonVital: response.budget.nonVital
+          })
+          if (response.userId) {
+            setUserId(response.userId)
+          }
+          console.log('Budget data loaded successfully')
+        } else {
+          throw new Error('Invalid response format: budget data not found')
+        }
+      } catch (err: any) {
+        console.error('Error fetching budget:', err)
+        const errorMessage = err?.response?.data?.message || err?.message || 'Failed to fetch budget data'
+        setError(errorMessage)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBudget()
+  }, [])
+
+  const handleUpdateCell = (budgetType: 'income' | 'nonVital' | 'vital') => {
+    return async (rowId: string, monthIndex: number, value: number) => {
+      // Calculate the updated monthly_data before dispatching
+      const budgetData = state[budgetType]
+      const category = budgetData.find(row => row.id === rowId)
+      
+      if (!category) return
+
+      const updatedMonthlyData = [...category.monthly_data]
+      updatedMonthlyData[monthIndex] = value
+
+      // Update local state
       dispatch({
         type: 'UPDATE_CELL',
         budgetType,
@@ -23,12 +77,45 @@ function App() {
         monthIndex,
         value
       })
+
+      // Call API to persist the update
+      if (userId) {
+        try {
+          await budgetService.updateBudget(
+            currentYear,
+            userId,
+            budgetType,
+            rowId,
+            updatedMonthlyData
+          )
+        } catch (err: any) {
+          console.error('Error updating budget:', err)
+          // Optionally show error to user or revert the change
+        }
+      }
     }
-  }, [])
+  }
 
   const handleIncomeUpdates = handleUpdateCell('income')
   const handleVitalUpdates = handleUpdateCell('vital')
   const handleNonVitalUpdates = handleUpdateCell('nonVital')
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <p className="text-lg">Loading budget data...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <p className="text-lg text-red-600">Error: {error}</p>
+        <p className="text-sm text-gray-600 mt-2">Make sure the server is running on http://localhost:3001</p>
+      </div>
+    )
+  }
 
   return (
       <div className="flex flex-col items-center min-h-screen py-8 gap-8 px-4">

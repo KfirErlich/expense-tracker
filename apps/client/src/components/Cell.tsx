@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import type { CatagoryRow } from "../types/tablesDef"
+import type { CatagoryRow } from "@shared"
 import React from "react"
 
 type HandleUpdateCell = (rowId: string, monthIndex: number, value: number) => void
@@ -7,18 +7,17 @@ type HandleUpdateCell = (rowId: string, monthIndex: number, value: number) => vo
 export const CellComponent = React.memo(({ row, amount, monthIndex, handleUpdateCell }: { row: CatagoryRow, amount: number, monthIndex: number, handleUpdateCell: HandleUpdateCell }) => {
     const [inputValue, setInputValue] = useState<string>(amount.toString())
     
-    // Update local state when the amount prop changes (from external updates)
     useEffect(() => {
         setInputValue(amount.toString())
     }, [amount])
     
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value
-        setInputValue(value) // Allow typing/deleting characters naturally
+        setInputValue(value) 
     }
     
     const handleBlur = () => {
-        // Ensure we have a valid number on blur
+
         const numValue = inputValue === '' ? 0 : Number(inputValue)
         if (isNaN(numValue)) {
             setInputValue('0')

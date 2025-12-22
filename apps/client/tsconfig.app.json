@@ -22,7 +22,15 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "paths": {
+      "@shared": [
+        "../../packages/shared/index"
+      ],
+      "@shared/*": [
+        "../../packages/shared/*"
+      ]
+    }
   },
   "include": ["src"]
 }

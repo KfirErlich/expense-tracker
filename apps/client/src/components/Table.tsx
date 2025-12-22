@@ -1,13 +1,12 @@
-import type { BudgetData } from "../types/tablesDef"
+import type { BudgetData } from "@shared"
 import React from "react"
 
-import { MONTH_NAMES } from "../types/tablesDef"
+import { MONTH_NAMES } from "@shared"
 import { CellComponent } from "./Cell"
 
 type HandleUpdateCell = (rowId: string, monthIndex: number, value: number) => void
 
 export const TableComponent = ({ budgetData, handleUpdateCell }: { budgetData: BudgetData, handleUpdateCell: HandleUpdateCell }) => {
-    // Calculate the sum for each month column
     const monthlySums = MONTH_NAMES.map((_, monthIndex) => {
         return budgetData.reduce((sum, row) => sum + (row.monthly_data[monthIndex] || 0), 0)
     })

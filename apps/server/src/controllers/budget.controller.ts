@@ -88,10 +88,10 @@ export const BudgetController = {
                 return res.status(400).json({ message: "userId is required" });
             }
 
-            const budgets = await Budget.find({ userId }).select('year').sort({ year: 1 });
-            const years = budgets.map(budget => budget.year);
+            const years = await Budget.distinct('year', { userId });
+            const sortedYears = years.sort((a, b) => b - a);
 
-            res.json({ years });
+            res.json({ years: sortedYears });
         } catch (error) {
             console.error("Error fetching years:", error);
             res.status(500).json({ message: "Error fetching years" });

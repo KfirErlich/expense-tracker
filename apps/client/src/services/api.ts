@@ -1,13 +1,12 @@
 import axios from 'axios'
 
 const API_URL = "http://localhost:3001/api"
-const DEV_USER_ID = "kfir-dev-1"
 
 export const budgetService = {
-    getBudget: async( year: number) => {
+    getBudget: async(year: number, userId: string) => {
         const response = await axios.get(`${API_URL}/budget/${year}`, {
             params: {
-                userId: DEV_USER_ID,
+                userId,
                 year
             }
         })

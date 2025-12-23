@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useReducer, useEffect } from 'react'
 import { budgetService } from '../services/api'
+import { yearReducer } from '../store/yearReducer'
+import { initialYearState } from '../types/year.types'
 
 const YearDropdown = ({
     currentYear, 
@@ -10,10 +12,14 @@ const YearDropdown = ({
     setCurrentYear: (year: number) => void,
     userId: string
 }) => {
-    const [availableYears, setAvailableYears] = useState<number[]>([currentYear])
-    const [newYearInput, setNewYearInput] = useState<string>('')
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+    const [state, dispatch] = useReducer(yearReducer, initialYearState)
+
+    useEffect(() => {
+        if (state.showAddForm) {
+            const nextYear = currentYear + 1
+            dispatch({ type: 'SET_NEW_YEAR_INPUT', payload: nextYear.toString() })
+        }
+    }, [state.showAddForm, currentYear])
 
     useEffect(() => {
         const fetchYears = async () => {
@@ -22,16 +28,17 @@ const YearDropdown = ({
             try {
                 const response = await budgetService.getYears(userId)
                 if (response.years && response.years.length > 0) {
-                    setAvailableYears(response.years)
+                    dispatch({ type: 'SET_AVAILABLE_YEARS', payload: response.years })
                     if (!response.years.includes(currentYear)) {
-                        setCurrentYear(response.years[0])
+                        const newYear = response.years[0]
+                        setCurrentYear(newYear)
                     }
                 } else {
-                    setAvailableYears([currentYear])
+                    dispatch({ type: 'SET_AVAILABLE_YEARS', payload: [currentYear] })
                 }
             } catch (err: any) {
                 console.error('Error fetching years:', err)
-                setError('Failed to load years')
+                dispatch({ type: 'SET_ERROR', payload: 'Failed to load years' })
             }
         }
 
@@ -39,87 +46,109 @@ const YearDropdown = ({
     }, [userId])
 
     const handleAddYear = async () => {
-        if (!newYearInput.trim()) {
-            setError('Please enter a year')
+        if (!state.newYearInput.trim()) {
+            dispatch({ type: 'SET_ERROR', payload: 'Please enter a year' })
             return
         }
 
-        const yearToAdd = parseInt(newYearInput.trim())
+        const yearToAdd = parseInt(state.newYearInput.trim())
         
         if (isNaN(yearToAdd)) {
-            setError('Please enter a valid year')
+            dispatch({ type: 'SET_ERROR', payload: 'Please enter a valid year' })
             return
         }
 
-        if (availableYears.includes(yearToAdd)) {
-            setError('This year already exists')
+        if (state.availableYears.includes(yearToAdd)) {
+            dispatch({ type: 'SET_ERROR', payload: 'This year already exists' })
             return
         }
 
         if (!userId) {
-            setError('User ID is required')
+            dispatch({ type: 'SET_ERROR', payload: 'User ID is required' })
             return
         }
 
-        setLoading(true)
-        setError(null)
+        dispatch({ type: 'SET_LOADING', payload: true })
+        dispatch({ type: 'CLEAR_ERROR' })
 
         try {
             await budgetService.createYear(yearToAdd, userId)
-            const updatedYears = [...availableYears, yearToAdd].sort((a, b) => a - b)
-            setAvailableYears(updatedYears)
+            dispatch({ type: 'ADD_YEAR', payload: yearToAdd })
             setCurrentYear(yearToAdd)
-            setNewYearInput('')
+            dispatch({ type: 'SET_SHOW_ADD_FORM', payload: false })
+            dispatch({ type: 'CLEAR_ERROR' })
         } catch (err: any) {
             console.error('Error creating year:', err)
             const errorMessage = err?.response?.data?.message || 'Failed to create year'
-            setError(errorMessage)
+            dispatch({ type: 'SET_ERROR', payload: errorMessage })
         } finally {
-            setLoading(false)
+            dispatch({ type: 'SET_LOADING', payload: false })
         }
     }
 
     return (
-        <div className="flex flex-col items-center justify-center gap-4">
+        <div className="flex flex-col items-center justify-center gap-4 border-2 border-gray-300 rounded-md p-4">
+            <h2 className="text-lg text-gray-700 font-bold">Select A Year To View The Budget</h2>
             <div className="flex items-center justify-center gap-2">
-                <label htmlFor="year" className="text-lg text-gray-700 font-bold">Year: </label>
                 <select 
                     id="year" 
                     value={currentYear}
-                    onChange={(e) => setCurrentYear(parseInt(e.target.value))} 
+                    onChange={(e) => {
+                        const year = parseInt(e.target.value)
+                        setCurrentYear(year)
+                    }} 
                     className="border border-gray-300 rounded-md p-2"
                 >
-                    {availableYears.map((year) => (
+                    {state.availableYears.map((year) => (
                         <option key={year} value={year}>{year}</option>
                     ))}
                 </select>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-                <input
-                    type="number"
-                    value={newYearInput}
-                    onChange={(e) => {
-                        setNewYearInput(e.target.value)
-                        setError(null)
-                    }}
-                    placeholder="Enter year"
-                    className="border border-gray-300 rounded-md p-2 w-32"
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                            handleAddYear()
-                        }
-                    }}
-                />
                 <button
-                    onClick={handleAddYear}
-                    disabled={loading}
-                    className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-md"
+                    onClick={() => {
+                        dispatch({ type: 'TOGGLE_ADD_FORM' })
+                        dispatch({ type: 'CLEAR_ERROR' })
+                    }}
+                    className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-md text-lg flex items-center justify-center w-10 h-10"
+                    title="Add a new year"
                 >
-                    {loading ? 'Adding...' : 'Add a year'}
+                    +
                 </button>
             </div>
-            {error && (
-                <p className="text-red-600 text-sm">{error}</p>
+            {state.showAddForm && (
+                <div className="flex items-center justify-center gap-2">
+                    <button
+                    onClick={() => dispatch({ type: 'TOGGLE_ADD_FORM' })}
+                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-md text-lg flex items-center justify-center w-10 h-10"
+                    title="Remove the new year input"
+                    >
+                    -
+                    </button>
+                    <input
+                        type="number"
+                        value={state.newYearInput}
+                        onChange={(e) => {
+                            dispatch({ type: 'SET_NEW_YEAR_INPUT', payload: e.target.value })
+                        }}
+                        placeholder="Enter year"
+                        className="border border-gray-300 rounded-md p-2 w-32"
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                handleAddYear()
+                            }
+                        }}
+                        autoFocus
+                    />
+                    <button
+                        onClick={handleAddYear}
+                        disabled={state.loading}
+                        className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-md"
+                    >
+                        {state.loading ? 'Adding...' : 'Add a year'}
+                    </button>
+                </div>
+            )}
+            {state.error && (
+                <p className="text-red-600 text-sm">{state.error}</p>
             )}
         </div>
     )

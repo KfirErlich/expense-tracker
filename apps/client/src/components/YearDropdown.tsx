@@ -26,7 +26,7 @@ const YearDropdown = ({
             if (!userId) return
             
             try {
-                const response = await budgetService.getYears(userId)
+                const response = await budgetService.getYears()
                 if (response.years && response.years.length > 0) {
                     dispatch({ type: 'SET_AVAILABLE_YEARS', payload: response.years })
                     if (!response.years.includes(currentYear)) {
@@ -72,7 +72,7 @@ const YearDropdown = ({
         dispatch({ type: 'CLEAR_ERROR' })
 
         try {
-            await budgetService.createYear(yearToAdd, userId)
+            await budgetService.createYear(yearToAdd)
             dispatch({ type: 'ADD_YEAR', payload: yearToAdd })
             setCurrentYear(yearToAdd)
             dispatch({ type: 'SET_SHOW_ADD_FORM', payload: false })

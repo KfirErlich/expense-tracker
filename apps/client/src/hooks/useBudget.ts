@@ -19,7 +19,7 @@ export const useBudget = (userId: string, currentYear: number) => {
         setLoading(true)
         setError(null)
         console.log('Fetching budget for year:', currentYear, 'userId:', userId)
-        const response = await budgetService.getBudget(currentYear, userId)
+        const response = await budgetService.getBudget(currentYear)
         console.log('Budget response received:', response)
         
         // The API returns { budget: { income, vital, nonVital }, userId }
@@ -70,7 +70,6 @@ export const useBudget = (userId: string, currentYear: number) => {
       try {
         await budgetService.updateBudget(
           currentYear,
-          userId,
           budgetType,
           rowId,
           updatedMonthlyData

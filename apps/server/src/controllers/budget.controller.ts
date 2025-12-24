@@ -1,12 +1,11 @@
 import { Request, Response } from 'express'
 import { Budget } from "../models/Budget"
-import { v4 as uuidv4 } from "uuid"
 
 import {
     INITIAL_INCOME_BUDGET_DATA, 
     INITIAL_VITAL_EXPENSES_BUDGET_DATA, 
     INITIAL_NON_VITAL_EXPENSES_BUDGET_DATA
-} from '@shared'
+} from 'shared'
 
 
 export const BudgetController = {
@@ -14,10 +13,10 @@ export const BudgetController = {
     getBudget: async (req: Request, res: Response) => {
         try{
             const { year }  = req.params
-            let { userId } = req.query
+            const userId = (req as any).user?.uid;
 
-            if(!userId){
-                userId = uuidv4();
+            if (!userId) {
+                return res.status(401).json({ message: "User not authenticated" });
             }
             
             let budget = await Budget.findOneAndUpdate(
@@ -43,9 +42,18 @@ export const BudgetController = {
     },
     updateBudget: async (req: Request, res: Response) => {
         try {
-            const { year, userId, section, categoryId, newMonthlyData } = req.body
+            const { year: yearParam } = req.params;
+            const { section, categoryId, newMonthlyData } = req.body;
+            
+            const userId = (req as any).user?.uid;
 
-            if (!year || !userId || !section || !categoryId || !newMonthlyData) {
+            if (!userId) {
+                return res.status(401).json({ message: "User not authenticated" });
+            }
+
+            const year = yearParam || req.body.year;
+
+            if (!year || !section || !categoryId || !newMonthlyData) {
                 return res.status(400).json({ message: "Missing required fields" });
             }
 
@@ -82,10 +90,11 @@ export const BudgetController = {
     },
     getYears: async (req: Request, res: Response) => {
         try {
-            let { userId } = req.query
+            // Extract userId from authenticated user token
+            const userId = (req as any).user?.uid;
 
             if (!userId) {
-                return res.status(400).json({ message: "userId is required" });
+                return res.status(401).json({ message: "User not authenticated" });
             }
 
             const years = await Budget.distinct('year', { userId });
@@ -99,19 +108,23 @@ export const BudgetController = {
     },
     createYear: async (req: Request, res: Response) => {
         try {
-            const { year, userId } = req.body
+            const { year } = req.body;
+            
+            const userId = (req as any).user?.uid;
 
-            if (!year || !userId) {
-                return res.status(400).json({ message: "year and userId are required" });
+            if (!year) {
+                return res.status(400).json({ message: "year is required" });
             }
 
-            // Check if budget already exists
+            if (!userId) {
+                return res.status(401).json({ message: "User not authenticated" });
+            }
+
             const existingBudget = await Budget.findOne({ year: parseInt(year), userId });
             if (existingBudget) {
                 return res.status(409).json({ message: "Budget for this year already exists" });
             }
 
-            // Create new budget with initial data
             const budget = await Budget.create({
                 year: parseInt(year),
                 userId,

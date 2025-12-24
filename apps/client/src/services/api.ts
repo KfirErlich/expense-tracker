@@ -1,12 +1,30 @@
 import axios from 'axios'
+import { getAuth } from 'firebase/auth'
 
 const API_URL = "http://localhost:3001/api"
 
+const api = axios.create({
+    baseURL: API_URL
+})
+
+api.interceptors.request.use(async (config) => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (user) {
+        const token = await user.getIdToken();
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    return config;
+}, (error) => {
+    return Promise.reject(error);
+});
+
 export const budgetService = {
-    getBudget: async(year: number, userId: string) => {
-        const response = await axios.get(`${API_URL}/budget/${year}`, {
+    getBudget: async(year: number) => {
+        const response = await api.get(`/budget/${year}`, {
             params: {
-                userId,
                 year
             }
         })
@@ -14,32 +32,25 @@ export const budgetService = {
     },
     updateBudget: async (
         year: number,
-        userId: string,
         section: 'income' | 'vital' | 'nonVital',
         categoryId: string,
         newMonthlyData: number[]
     ) => {
-        const response = await axios.patch(`${API_URL}/budget/${year}`, {
+        const response = await api.patch(`/budget/${year}`, {
             year,
-            userId,
             section,
             categoryId,
             newMonthlyData
         })
         return response.data;
     },
-    getYears: async (userId: string) => {
-        const response = await axios.get(`${API_URL}/budget/years`, {
-            params: {
-                userId
-            }
-        })
+    getYears: async () => {
+        const response = await api.get(`/budget/years`)
         return response.data;
     },
-    createYear: async (year: number, userId: string) => {
-        const response = await axios.post(`${API_URL}/budget/year`, {
+    createYear: async (year: number) => {
+        const response = await api.post(`/budget/year`, {
             year,
-            userId
         })
         return response.data;
     }

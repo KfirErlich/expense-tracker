@@ -13,6 +13,7 @@ export const BudgetController = {
     getBudget: async (req: Request, res: Response) => {
         try{
             const { year }  = req.params
+            const { userName } = req.query;
             const userId = (req as any).user?.uid;
 
             if (!userId) {
@@ -23,6 +24,7 @@ export const BudgetController = {
                 { year: parseInt(year), userId },
                 { 
                   $setOnInsert: {
+                    userName: userName || 'Unknown User',
                     income: INITIAL_INCOME_BUDGET_DATA,
                     vital: INITIAL_VITAL_EXPENSES_BUDGET_DATA,
                     nonVital: INITIAL_NON_VITAL_EXPENSES_BUDGET_DATA
@@ -108,7 +110,7 @@ export const BudgetController = {
     },
     createYear: async (req: Request, res: Response) => {
         try {
-            const { year } = req.body;
+            const { year, userName } = req.body;
             
             const userId = (req as any).user?.uid;
 
@@ -127,6 +129,7 @@ export const BudgetController = {
 
             const budget = await Budget.create({
                 year: parseInt(year),
+                userName: userName || 'Unknown User',
                 userId,
                 income: INITIAL_INCOME_BUDGET_DATA,
                 vital: INITIAL_VITAL_EXPENSES_BUDGET_DATA,

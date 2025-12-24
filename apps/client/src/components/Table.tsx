@@ -1,7 +1,7 @@
-import type { BudgetData } from "@shared"
+import type { BudgetData } from "shared"
 import React from "react"
 
-import { MONTH_NAMES } from "@shared"
+import { MONTH_NAMES } from "shared"
 import { CellComponent } from "./Cell"
 
 type HandleUpdateCell = (rowId: string, monthIndex: number, value: number) => void

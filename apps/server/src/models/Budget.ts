@@ -24,7 +24,7 @@ export interface IBudget extends Document {
 const budgetSchema = new Schema<IBudget>({
   year: { type: Number, required: true },
   userId: { type: String, required: true },
-  userName: {type: String, require: true},
+  userName: {type: String, required: true},
   income: [categoryRowSchema],
   vital: [categoryRowSchema],
   nonVital: [categoryRowSchema],

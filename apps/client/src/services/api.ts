@@ -28,7 +28,7 @@ export const budgetService = {
         const response = await api.get(`/budget/${year}`, {
             params: {
                 year,
-                userName: user?.displayName 
+                userName: user?.email || 'Unknown User'
             }
         })
         return response.data;

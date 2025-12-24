@@ -15,7 +15,13 @@ const PORT = process.env.PORT || 10000;
 const db = new Database();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || '*',
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 db.connect()

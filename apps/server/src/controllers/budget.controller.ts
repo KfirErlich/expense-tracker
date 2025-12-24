@@ -4,8 +4,63 @@ import { Budget } from "../models/Budget"
 import {
     INITIAL_INCOME_BUDGET_DATA, 
     INITIAL_VITAL_EXPENSES_BUDGET_DATA, 
-    INITIAL_NON_VITAL_EXPENSES_BUDGET_DATA
+    INITIAL_NON_VITAL_EXPENSES_BUDGET_DATA,
+    type CatagoryRow
 } from 'shared'
+
+// Helper function to ensure category names are present
+const ensureCategoryNames = (categories: any[], initialData: CatagoryRow[]): any[] => {
+    return categories.map((cat: any) => {
+        if (!cat.name) {
+            const initialCategory = initialData.find(init => init.id === cat.id);
+            if (initialCategory) {
+                return { ...cat, name: initialCategory.name };
+            }
+        }
+        return cat;
+    });
+}
+
+// Helper function to ensure category names are present on Mongoose document before saving
+const ensureCategoryNamesOnDocument = (budget: any) => {
+    const initialDataMap: Record<string, CatagoryRow[]> = {
+        income: INITIAL_INCOME_BUDGET_DATA,
+        vital: INITIAL_VITAL_EXPENSES_BUDGET_DATA,
+        nonVital: INITIAL_NON_VITAL_EXPENSES_BUDGET_DATA
+    };
+
+    ['income', 'vital', 'nonVital'].forEach((section) => {
+        const sectionArray = budget[section] as any[];
+        const initialData = initialDataMap[section];
+        
+        if (sectionArray && Array.isArray(sectionArray)) {
+            sectionArray.forEach((cat: any, index: number) => {
+                if (!cat.name) {
+                    const initialCategory = initialData.find(init => init.id === cat.id);
+                    if (initialCategory) {
+                        cat.name = initialCategory.name;
+                    }
+                }
+            });
+        }
+    });
+}
+
+// Helper function to serialize budget document and ensure all category names are present
+const serializeBudget = (budget: any): any => {
+    if (!budget) {
+        return null;
+    }
+    
+    const budgetObject = budget.toObject();
+    
+    // Ensure category names are present (handles legacy data)
+    budgetObject.income = ensureCategoryNames(budgetObject.income || [], INITIAL_INCOME_BUDGET_DATA);
+    budgetObject.vital = ensureCategoryNames(budgetObject.vital || [], INITIAL_VITAL_EXPENSES_BUDGET_DATA);
+    budgetObject.nonVital = ensureCategoryNames(budgetObject.nonVital || [], INITIAL_NON_VITAL_EXPENSES_BUDGET_DATA);
+    
+    return budgetObject;
+}
 
 
 export const BudgetController = {
@@ -13,6 +68,7 @@ export const BudgetController = {
     getBudget: async (req: Request, res: Response) => {
         try{
             const { year }  = req.params
+            const { userName } = req.query;
             const userId = (req as any).user?.uid;
 
             if (!userId) {
@@ -23,6 +79,7 @@ export const BudgetController = {
                 { year: parseInt(year), userId },
                 { 
                   $setOnInsert: {
+                    userName: userName || 'Unknown User',
                     income: INITIAL_INCOME_BUDGET_DATA,
                     vital: INITIAL_VITAL_EXPENSES_BUDGET_DATA,
                     nonVital: INITIAL_NON_VITAL_EXPENSES_BUDGET_DATA
@@ -35,7 +92,8 @@ export const BudgetController = {
                 }
               );
 
-            res.json({ budget, userId })
+            const budgetObject = serializeBudget(budget);
+            res.json({ budget: budgetObject, userId });
         } catch(error) {
             res.status(500).json({ message: "Error fetching budget" });
         }
@@ -77,12 +135,30 @@ export const BudgetController = {
                 return res.status(404).json({ message: "Category not found" });
             }
 
-            sectionArray[categoryIndex].monthly_data = newMonthlyData;
-            sectionArray[categoryIndex].year_total = newTotal;
+            // Ensure the name field is preserved before updating
+            const category = sectionArray[categoryIndex];
+            if (!category.name) {
+                const initialDataMap: Record<string, CatagoryRow[]> = {
+                    income: INITIAL_INCOME_BUDGET_DATA,
+                    vital: INITIAL_VITAL_EXPENSES_BUDGET_DATA,
+                    nonVital: INITIAL_NON_VITAL_EXPENSES_BUDGET_DATA
+                };
+                const initialCategory = initialDataMap[section].find(init => init.id === categoryId);
+                if (initialCategory) {
+                    category.name = initialCategory.name;
+                }
+            }
+
+            category.monthly_data = newMonthlyData;
+            category.year_total = newTotal;
+
+            // Ensure all category names are present before saving
+            ensureCategoryNamesOnDocument(budget);
 
             await budget.save();
 
-            res.json({ budget, userId });
+            const budgetObject = serializeBudget(budget);
+            res.json({ budget: budgetObject, userId });
         } catch (error) {
             console.error("Error updating budget:", error);
             res.status(500).json({ message: "Error updating budget" });
@@ -108,7 +184,7 @@ export const BudgetController = {
     },
     createYear: async (req: Request, res: Response) => {
         try {
-            const { year } = req.body;
+            const { year, userName } = req.body;
             
             const userId = (req as any).user?.uid;
 
@@ -127,13 +203,15 @@ export const BudgetController = {
 
             const budget = await Budget.create({
                 year: parseInt(year),
+                userName: userName || 'Unknown User',
                 userId,
                 income: INITIAL_INCOME_BUDGET_DATA,
                 vital: INITIAL_VITAL_EXPENSES_BUDGET_DATA,
                 nonVital: INITIAL_NON_VITAL_EXPENSES_BUDGET_DATA
             });
 
-            res.json({ budget, userId });
+            const budgetObject = serializeBudget(budget);
+            res.json({ budget: budgetObject, userId });
         } catch (error) {
             console.error("Error creating year:", error);
             res.status(500).json({ message: "Error creating year" });

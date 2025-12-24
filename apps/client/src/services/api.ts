@@ -23,9 +23,12 @@ api.interceptors.request.use(async (config) => {
 
 export const budgetService = {
     getBudget: async(year: number) => {
+        const auth = getAuth();
+        const user = auth.currentUser;
         const response = await api.get(`/budget/${year}`, {
             params: {
-                year
+                year,
+                userName: user?.email || 'Unknown User'
             }
         })
         return response.data;
@@ -49,8 +52,12 @@ export const budgetService = {
         return response.data;
     },
     createYear: async (year: number) => {
+        const auth = getAuth();
+        const user = auth.currentUser;
+        
         const response = await api.post(`/budget/year`, {
             year,
+            userName: user?.displayName
         })
         return response.data;
     }

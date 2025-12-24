@@ -14,6 +14,7 @@ const categoryRowSchema = new Schema({
 export interface IBudget extends Document {
   year: number;
   userId: string;
+  userName: string;
   income: any[];
   vital: any[];
   nonVital: any[];
@@ -23,6 +24,7 @@ export interface IBudget extends Document {
 const budgetSchema = new Schema<IBudget>({
   year: { type: Number, required: true },
   userId: { type: String, required: true },
+  userName: {type: String, required: true},
   income: [categoryRowSchema],
   vital: [categoryRowSchema],
   nonVital: [categoryRowSchema],

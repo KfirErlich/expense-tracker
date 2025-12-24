@@ -1,9 +1,9 @@
-import type { BudgetData } from 'shared'
+import type { BudgetData } from '@shared'
 import { 
     INITIAL_INCOME_BUDGET_DATA,
     INITIAL_NON_VITAL_EXPENSES_BUDGET_DATA,
     INITIAL_VITAL_EXPENSES_BUDGET_DATA
-} from 'shared'
+} from '@shared'
 
 export interface BudgetState {
     income: BudgetData

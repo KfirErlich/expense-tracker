@@ -57,7 +57,7 @@ export const budgetService = {
         
         const response = await api.post(`/budget/year`, {
             year,
-            userName: user?.displayName
+            userName: user?.email || 'Unknown User'
         })
         return response.data;
     }
